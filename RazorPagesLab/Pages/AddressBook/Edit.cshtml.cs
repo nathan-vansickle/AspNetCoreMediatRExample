@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -7,26 +9,44 @@ namespace RazorPagesLab.Pages.AddressBook;
 
 public class EditModel : PageModel
 {
-	private readonly IMediator _mediator;
-	private readonly IRepo<AddressBookEntry> _repo;
+    private readonly IMediator _mediator;
+    private readonly IRepo<AddressBookEntry> _repo;
 
-	public EditModel(IRepo<AddressBookEntry> repo, IMediator mediator)
-	{
-		_repo = repo;
-		_mediator = mediator;
-	}
+    public EditModel(IRepo<AddressBookEntry> repo, IMediator mediator)
+    {
+        _repo = repo;
+        _mediator = mediator;
+    }
 
-	[BindProperty]
-	public UpdateAddressRequest UpdateAddressRequest { get; set; }
+    [BindProperty]
+    public UpdateAddressRequest UpdateAddressRequest { get; set; }
 
-	public void OnGet(Guid id)
-	{
-		// Todo: Use repo to get address book entry, set UpdateAddressRequest fields.
-	}
+    public void OnGet(Guid id)
+    {
+        EntryByIdSpecification spec = new EntryByIdSpecification(id);
+        IReadOnlyList<AddressBookEntry> data = _repo.Find(spec); // get relevant address entry
 
-	public ActionResult OnPost()
-	{
-		// Todo: Use mediator to send a "command" to update the address book entry, redirect to entry list.
-		return Page();
-	}
+        AddressBookEntry entry = data.FirstOrDefault();
+
+        if (entry != null)
+        {
+            // change each field according to UpdateAddressRequest
+            UpdateAddressRequest.Line1 = entry.Line1;
+            UpdateAddressRequest.Line2 = entry.Line2;
+            UpdateAddressRequest.City = entry.City;
+            UpdateAddressRequest.State = entry.State;
+            UpdateAddressRequest.PostalCode = entry.PostalCode;
+        }
+        else
+        {
+            System.Console.WriteLine("Error finding AddressBookEntry with ID " + id);
+        }
+    }
+
+    public ActionResult OnPost()
+    {
+        _mediator.Send(UpdateAddressRequest);
+
+        return Page();
+    }
 }
