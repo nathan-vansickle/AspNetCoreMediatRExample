@@ -23,6 +23,9 @@ public class EditModel : PageModel
 
     public void OnGet(Guid id)
     {
+        UpdateAddressRequest req = new UpdateAddressRequest();
+        UpdateAddressRequest = req;
+
         EntryByIdSpecification spec = new EntryByIdSpecification(id);
         IReadOnlyList<AddressBookEntry> data = _repo.Find(spec); // get relevant address entry
 
@@ -31,6 +34,7 @@ public class EditModel : PageModel
         if (entry != null)
         {
             // change each field according to UpdateAddressRequest
+            UpdateAddressRequest.Id = entry.Id;
             UpdateAddressRequest.Line1 = entry.Line1;
             UpdateAddressRequest.Line2 = entry.Line2;
             UpdateAddressRequest.City = entry.City;
